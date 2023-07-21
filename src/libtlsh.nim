@@ -88,7 +88,7 @@ proc ntlsh_scan_file*(file_path: string) =
   if tlsh_get_fp_hash(lsh1, file_path):
     for line in lines(db_path):
       let
-        sig_info = line.split(":")
+        sig_info = line.split(";")
 
       lsh2.tlsh_read_db_hash(sig_info[1])
       let
