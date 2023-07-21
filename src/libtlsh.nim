@@ -47,9 +47,10 @@ proc fromTlshStr(tlsh: Tlsh, data: cstring): cint {.importcpp, impTlsh.}
 proc version(tlsh: Tlsh): cstring {.importcpp, impTlsh.}
 
 
-proc tlsh_read_db_hash*(lsh: var Tlsh, hash: string) =
-  # TODO handle error
-  discard lsh.fromTlshStr(cstring(hash))
+proc tlsh_read_db_hash*(lsh: var Tlsh, hash: string): bool =
+  if lsh.fromTlshStr(cstring(hash)) == 0:
+    return true
+  return false
 
 
 proc tlsh_calc_diff*(lsh1, lsh2: var Tlsh, len_diff = true): int =
@@ -92,8 +93,10 @@ proc ntlsh_scan_file*(file_path: string) =
       let
         sig_info = line.split(";")
 
-      lsh2.tlsh_read_db_hash(sig_info[1])
-      let
-        diff = tlsh_calc_diff(lsh1, lsh2)
-      if diff < 100:
-        echo "[!] ", sig_info[0], " (diff ", diff, ") ", file_path
+      if lsh2.tlsh_read_db_hash(sig_info[1]):
+        let
+          diff = tlsh_calc_diff(lsh1, lsh2)
+        if diff < 100:
+          echo "[!] ", sig_info[0], " (diff ", diff, ") ", file_path
+          # do not break if not fast match?
+          return
