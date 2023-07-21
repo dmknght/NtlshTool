@@ -71,6 +71,8 @@ proc tlsh_get_fp_hash*(lsh: var Tlsh, path: string): bool =
       if f.endOfFile():
         lsh.final()
         f.close()
+        if isEmptyOrWhitespace($lsh.getHash()):
+          return false
         # Python code has the prefix T1 because of the showversion
         # https://github.com/trendmicro/tlsh/blob/master/py_ext/tlshmodule.cpp#L448
         return true
