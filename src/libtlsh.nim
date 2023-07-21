@@ -2,12 +2,14 @@
   Binding of libtlsh-dev on Debian
   Requires to Compile with cpp instead of c when use Nim compiler
 ]#
+import strutils
 
 {.pragma: impTlsh, header: "tlsh.h".}
 {.passL: "-ltlsh".}
 
 const
   BUFF_SIZE = 512
+  db_path* = "db/hashdb.txt"
 type
   Tlsh* {.importcpp: "Tlsh".} = object
 
@@ -45,24 +47,51 @@ proc fromTlshStr(tlsh: Tlsh, data: cstring): cint {.importcpp, impTlsh.}
 proc version(tlsh: Tlsh): cstring {.importcpp, impTlsh.}
 
 
-proc tlsh_get_fp_hash*(path: string, hash: var string): bool =
+proc tlsh_read_db_hash*(lsh: var Tlsh, hash: string) =
+  # TODO handle error
+  discard lsh.fromTlshStr(cstring(hash))
+
+
+proc tlsh_calc_diff*(lsh1, lsh2: var Tlsh, len_diff = true): int =
+  return int(totalDiff(lsh1, addr(lsh2), len_diff))
+
+
+proc tlsh_get_fp_hash*(lsh: var Tlsh, path: string): bool =
   # Calculate TrendMicro's LSH from file path
   try:
     var
-      th: Tlsh
       buffer = newString(BUFF_SIZE)
       f = open(path, fmRead)
     while true:
+      # ERROR ENDLESS LOOP?
       let
         read_bytes = f.readBuffer(addr(buffer[0]), BUFF_SIZE)
 
-      discard th.update(cstring(buffer), cuint(read_bytes))
+      discard lsh.update(cstring(buffer), cuint(read_bytes))
       if f.endOfFile():
-        th.final()
+        lsh.final()
         f.close()
-        hash = $th.getHash()
+        # Python code has the prefix T1 because of the showversion
+        # https://github.com/trendmicro/tlsh/blob/master/py_ext/tlshmodule.cpp#L448
         return true
-
   except:
-    hash = ""
     return false
+
+
+proc ntlsh_scan_file*(file_path: string) =
+  # Generate hash from file
+  # Compare with the db's hash
+  # Calculate score
+  var
+    lsh1, lsh2: Tlsh
+
+  if tlsh_get_fp_hash(lsh1, file_path):
+    for line in lines(db_path):
+      let
+        sig_info = line.split(":")
+
+      lsh2.tlsh_read_db_hash(sig_info[1])
+      let
+        diff = tlsh_calc_diff(lsh1, lsh2)
+      if diff < 100:
+        echo "[!] ", sig_info[0], " (diff ", diff, ") ", file_path
