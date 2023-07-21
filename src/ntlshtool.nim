@@ -14,18 +14,26 @@ type
     scan_target: seq[string]
 
 
-proc ntlsh_scan_file(file_path: string) =
-  var
-    sig_name: string
-  let
-    diff_score = tlsh_scan_file(file_path, sig_name)
-  if diff_score < 100 and not isEmptyOrWhitespace(sig_name):
-    echo "[!] ", sig_name, " (diff ", diff_score, ") ", file_path
+proc ntlsh_scan_file(file_path: string, mode: WorkMode) =
+  if mode == CmpHash:
+    var
+      sig_name: string
+    let
+      diff_score = tlsh_scan_file(file_path, sig_name)
+    if diff_score < 100 and not isEmptyOrWhitespace(sig_name):
+      echo "[!] ", sig_name, " (diff ", diff_score, ") ", file_path
+  else:
+    let
+      tlsh = tlsh_get_hash(file_path)
+    if not isEmptyOrWhitespace(tlsh):
+      echo tlsh_get_hash(file_path), " ", file_path
+    else:
+      echo "TNULL ", file_path
 
 
-proc ntlsh_scan_dir(dir_path: string) =
+proc ntlsh_scan_dir(dir_path: string, mode: WorkMode) =
   for path in walkDirRec(dir_path):
-    ntlsh_scan_file(path)
+    ntlsh_scan_file(path, mode)
 
 
 proc ntlsh_help_banner() =
@@ -63,9 +71,9 @@ proc main() =
       abs_path = absolutePath(path)
       path_info = getFileInfo(abs_path)
     if path_info.kind == pcFile:
-      ntlsh_scan_file(abs_path)
+      ntlsh_scan_file(abs_path, opt.mode)
     elif path_info.kind == pcDir:
-      ntlsh_scan_dir(abs_path)
+      ntlsh_scan_dir(abs_path, opt.mode)
 
 main()
 
