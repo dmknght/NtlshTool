@@ -84,5 +84,3 @@ proc main() =
       ntlsh_scan_dir(abs_path, opt.mode)
 
 main()
-
-# TODO meterpreter generation failed
