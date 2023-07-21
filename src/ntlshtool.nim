@@ -1,5 +1,15 @@
 import libtlsh
 import os
+import strutils
+
+
+proc ntlsh_scan_file(file_path: string) =
+  var
+    sig_name: string
+  let
+    diff_score = tlsh_scan_file(file_path, sig_name)
+  if diff_score < 100 and not isEmptyOrWhitespace(sig_name):
+    echo "[!] ", sig_name, " (diff ", diff_score, ") ", file_path
 
 
 proc ntlsh_scan_dir(dir_path: string) =
