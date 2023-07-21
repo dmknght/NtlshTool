@@ -106,5 +106,4 @@ proc tlsh_get_hash*(file_path: string): string =
     return $lsh.getHash()
 
 # TODO file descriptor calculation
-# TODO combine with the regular tool
 # TODO support calculation using buffer isntead of file?
