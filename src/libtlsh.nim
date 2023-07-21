@@ -6,16 +6,18 @@
 {.pragma: impTlsh, header: "tlsh.h".}
 {.passL: "-ltlsh".}
 
+const
+  BUFF_SIZE = 512
 type
-  Tlsh {.importcpp: "Tlsh".} = object
+  Tlsh* {.importcpp: "Tlsh".} = object
 
 # Allow the user to add data in multiple iterations
 # void update(const unsigned char* data, unsigned int len);
-proc update(tlsh: Tlsh; data: cstring; len: cuint): cint {.importcpp, impTlsh.}
+proc update(tlsh: Tlsh, data: cstring, len: cuint): cint {.importcpp, impTlsh.}
 
 # To signal the class there is no more data to be added
 # void final(const unsigned char* data = NULL, unsigned int len = 0);
-proc final(tlsh: Tlsh; data: cstring = nil; len: cuint = 0): void {.importcpp, impTlsh.}
+proc final(tlsh: Tlsh, data: cstring = nil, len: cuint = 0): void {.importcpp, impTlsh.}
 
 # To get the hex-encoded hash code
 # const char* getHash() const ;
@@ -41,3 +43,26 @@ proc fromTlshStr(tlsh: Tlsh, data: cstring): cint {.importcpp, impTlsh.}
 # Return the version information used to build this library
 # static const char *version();
 proc version(tlsh: Tlsh): cstring {.importcpp, impTlsh.}
+
+
+proc tlsh_get_fp_hash*(path: string, hash: var string): bool =
+  # Calculate TrendMicro's LSH from file path
+  try:
+    var
+      th: Tlsh
+      buffer = newString(BUFF_SIZE)
+      f = open(path, fmRead)
+    while true:
+      let
+        read_bytes = f.readBuffer(addr(buffer[0]), BUFF_SIZE)
+
+      discard th.update(cstring(buffer), cuint(read_bytes))
+      if f.endOfFile():
+        th.final()
+        f.close()
+        hash = $th.getHash()
+        return true
+
+  except:
+    hash = ""
+    return false

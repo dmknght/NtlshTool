@@ -1,2 +1,2 @@
 all:
-  nim cpp src/ntlshtool.nim -o ntlshtool
+	nim cpp --out:ntlshtool src/ntlshtool.nim
