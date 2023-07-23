@@ -91,7 +91,7 @@ proc tlsh_get_fd_hash(lsh: var Tlsh, fd: cint): bool =
 
       if read_bytes == -1:
         lsh.final()
-        discard fd.close()
+        # discard fd.close() # Should I close here?
         return true
       discard lsh.update(cstring(buffer), cuint(read_bytes))
   except:
