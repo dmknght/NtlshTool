@@ -1,6 +1,7 @@
 import libtlsh
 import os
 import strutils
+# import posix
 
 
 type
@@ -15,13 +16,21 @@ type
 
 
 proc ntlsh_calc_hash(file_path: string) =
+  # Code block test file descriptor
+  # let
+  #   fd = open(cstring(file_path), O_RDONLY)
+  #   tlsh = tlsh_hash_fp(file_path)
+  #
+  # if fd == -1:
+  #   return
+  # Code block use normal path
   let
     tlsh = tlsh_hash_fp(file_path)
   if not isEmptyOrWhitespace(tlsh):
     echo tlsh_hash_fp(file_path), " ", file_path
   else:
     echo "TNULL ", file_path
-
+  # discard fd.close()
 
 proc ntlsh_check_hash(file_path: string) =
   var
