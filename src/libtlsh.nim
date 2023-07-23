@@ -98,7 +98,7 @@ proc tlsh_get_fd_hash(lsh: var Tlsh, fd: cint): bool =
     return false
 
 
-proc tlsh_scan_file*(file_path: string, sig_name: var string): int =
+proc tlsh_scan_fp*(file_path: string, sig_name: var string): int =
   # Generate hash from file
   # Compare with the db's hash
   # Calculate score
@@ -115,11 +115,32 @@ proc tlsh_scan_file*(file_path: string, sig_name: var string): int =
         return int(tlsh_calc_diff(lsh1, lsh2))
 
 
-proc tlsh_get_hash*(file_path: string): string =
+proc tlsh_scan_fd*(fd: cint, sig_name: var string): int =
+  var
+    lsh1, lsh2: Tlsh
+
+  if tlsh_get_fd_hash(lsh1, fd):
+    for line in lines(db_path):
+      let
+        sig_info = line.split(";")
+
+      if lsh2.tlsh_read_db_hash(sig_info[1]):
+        sig_name = sig_info[0]
+        return int(tlsh_calc_diff(lsh1, lsh2))
+
+
+proc tlsh_hash_fp*(file_path: string): string =
   var
     lsh: Tlsh
 
   if tlsh_get_fp_hash(lsh, file_path):
+    return $lsh.getHash()
+
+
+proc tlsh_hash_fd*(fd: cint): string =
+  var
+    lsh: Tlsh
+  if tlsh_get_fd_hash(lsh, fd):
     return $lsh.getHash()
 
 # TODO support calculation using buffer isntead of file?

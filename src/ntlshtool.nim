@@ -16,9 +16,9 @@ type
 
 proc ntlsh_calc_hash(file_path: string) =
   let
-    tlsh = tlsh_get_hash(file_path)
+    tlsh = tlsh_hash_fp(file_path)
   if not isEmptyOrWhitespace(tlsh):
-    echo tlsh_get_hash(file_path), " ", file_path
+    echo tlsh_hash_fp(file_path), " ", file_path
   else:
     echo "TNULL ", file_path
 
@@ -27,7 +27,7 @@ proc ntlsh_check_hash(file_path: string) =
   var
     sig_name: string
   let
-    diff_score = tlsh_scan_file(file_path, sig_name)
+    diff_score = tlsh_scan_fp(file_path, sig_name)
   if diff_score < 100 and not isEmptyOrWhitespace(sig_name):
     echo "[!] ", sig_name, " (diff ", diff_score, ") ", file_path
 
