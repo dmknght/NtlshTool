@@ -112,7 +112,7 @@ proc tlsh_scan_fp*(file_path: string, sig_name: var string): int =
 
       if lsh2.tlsh_read_db_hash(sig_info[1]):
         sig_name = sig_info[0]
-        return int(tlsh_calc_diff(lsh1, lsh2))
+        return tlsh_calc_diff(lsh1, lsh2)
 
 
 proc tlsh_scan_fd*(fd: cint, sig_name: var string): int =
@@ -126,7 +126,7 @@ proc tlsh_scan_fd*(fd: cint, sig_name: var string): int =
 
       if lsh2.tlsh_read_db_hash(sig_info[1]):
         sig_name = sig_info[0]
-        return int(tlsh_calc_diff(lsh1, lsh2))
+        return tlsh_calc_diff(lsh1, lsh2)
 
 
 proc tlsh_hash_fp*(file_path: string): string =
