@@ -3,6 +3,7 @@
   Requires to Compile with cpp instead of c when use Nim compiler
 ]#
 import strutils
+import posix
 
 {.pragma: impTlsh, header: "tlsh.h".}
 {.passL: "-ltlsh".}
@@ -81,6 +82,22 @@ proc tlsh_get_fp_hash(lsh: var Tlsh, path: string): bool =
     return false
 
 
+proc tlsh_get_fd_hash(lsh: var Tlsh, fd: cint): bool =
+  try:
+    var buffer = newString(BUFF_SIZE)
+    while true:
+      let
+        read_bytes = posix.read(fd, buffer.addr, BUFF_SIZE)
+
+      if read_bytes == -1:
+        lsh.final()
+        discard fd.close()
+        return true
+      discard lsh.update(cstring(buffer), cuint(read_bytes))
+  except:
+    return false
+
+
 proc tlsh_scan_file*(file_path: string, sig_name: var string): int =
   # Generate hash from file
   # Compare with the db's hash
@@ -105,5 +122,4 @@ proc tlsh_get_hash*(file_path: string): string =
   if tlsh_get_fp_hash(lsh, file_path):
     return $lsh.getHash()
 
-# TODO file descriptor calculation
 # TODO support calculation using buffer isntead of file?
